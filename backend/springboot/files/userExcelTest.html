@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计划数据导入测试</title>
+    <!-- 引入Element UI的CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入Vue -->
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <!-- 引入Element UI的JS -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- 引入axios（处理文件上传请求） -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        .plan-import-container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 50px auto;
+            border: 1px solid #ebeef5;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .el-upload__tip {
+            color: #909399;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div id="app" class="plan-import-container">
+    <el-upload
+            class="upload-demo"
+            ref="upload"
+            :file-list="fileList"
+            :auto-upload="false"
+            :on-change="handleFileChange"
+    >
+        <el-button type="primary" slot="trigger">选择Excel文件</el-button>
+        <el-button type="success" @click="submitUpload">数据导入</el-button>
+        <div slot="tip" class="el-upload__tip">
+            仅支持.xlsx/.xls格式文件，且需使用指定的导入模板，文件大小不超过10MB
+        </div>
+    </el-upload>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                fileList: [], // 已选择的文件列表
+                uploadFile: null // 存储待上传的文件对象
+            };
+        },
+        methods: {
+            // 文件选择/状态改变时的处理
+            handleFileChange(file, fileList) {
+                this.fileList = fileList;
+                this.uploadFile = file.raw; // 获取原生File对象
+                // 前置校验：格式+大小
+                const isValid = this.beforeUpload(file);
+                if (!isValid) {
+                    this.fileList = [];
+                    this.uploadFile = null;
+                }
+            },
+            // 上传前校验
+            beforeUpload(file) {
+                // 校验文件格式
+                const fileName = file.name;
+                const isExcel = fileName.endsWith(".xlsx") || fileName.endsWith(".xls");
+                if (!isExcel) {
+                    this.$message.error("请上传.xlsx/.xls格式的Excel文件！");
+                    return false;
+                }
+                // 校验文件大小（10MB）
+                const isLt10M = file.size / 1024 / 1024 < 10;
+                if (!isLt10M) {
+                    this.$message.error("文件大小不能超过10MB！");
+                    return false;
+                }
+                return true;
+            },
+            // 手动提交上传
+            submitUpload() {
+                if (!this.uploadFile) {
+                    this.$message.warning("请先选择要上传的Excel文件！");
+                    return;
+                }
+
+                // 构建FormData（模拟表单上传）
+                const formData = new FormData();
+                formData.append("file", this.uploadFile); // 字段名需和后端@RequestParam("file")一致
+
+                // 发送上传请求
+                axios({
+                    url: "http://localhost:9090/user/import", // 替换为你的后端接口地址
+                    method: "post",
+                    data: formData,
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        // 若后端需要token认证，取消下面注释并替换为实际token
+                        // "Authorization": "Bearer " + localStorage.getItem("token")
+                    }
+                }).then(response => {
+                    // 处理成功响应
+                    const res = response.data;
+                    if (res.code === 200) {
+                        this.$message.success(res.msg);
+                    } else {
+                        this.$message.error(res.msg);
+                    }
+                    // 清空文件列表
+                    this.fileList = [];
+                    this.uploadFile = null;
+                }).catch(error => {
+                    // 处理请求失败
+                    let errorMsg = "文件上传失败！";
+                    if (error.response) {
+                        errorMsg = error.response.data?.msg || `请求错误：${error.response.status}`;
+                    } else if (error.message) {
+                        errorMsg = "网络错误：" + error.message;
+                    }
+                    this.$message.error(errorMsg);
+                    // 清空文件列表
+                    this.fileList = [];
+                    this.uploadFile = null;
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>

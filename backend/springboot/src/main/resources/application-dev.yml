@@ -1,0 +1,14 @@
+qzb:
+  db:
+    host: localhost
+    pw: Qzb15607074531
+    port: 3306
+  log:
+    file:
+      name: ${user.dir}/logs/backend.log
+  file:
+    upload:
+      path: ${user.dir}/files/
+      access-path: /files/
+  template:
+    path: ${user.dir}/template/

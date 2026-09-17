@@ -1,0 +1,113 @@
+server:
+  port: 9090
+
+#ip: localhost
+# 数据库配置
+spring:
+  profiles:
+    active: prod
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root   #数据库用户名
+    password: ${qzb.db.pw} #数据库密码
+    url: jdbc:mysql://${qzb.db.host}:${qzb.db.port}/task_manage?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=GMT%2b8&allowPublicKeyRetrieval=true
+    # 连接池调优：远程MySQL/防火墙会掐断空闲几分钟的连接，默认maxLifetime(30分钟)远大于它，
+    # 池里会积累死连接，每次取用要卡5秒校验失败才淘汰一个（一次请求最多白等25秒+，导致"请求超时"）
+    hikari:
+      max-lifetime: 120000        # 连接最长存活2分钟，赶在服务器掐断前主动退休
+      keepalive-time: 45000       # 空闲45秒发心跳保活，避免存活期内的连接被掐
+      validation-timeout: 3000    # 连接校验3秒超时，死连接快速淘汰不再卡5秒
+      connection-timeout: 10000   # 获取连接最多等10秒
+      minimum-idle: 2
+      maximum-pool-size: 10
+
+
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+# 邮件设置
+  mail:
+    port: 465
+    host: smtp.163.com
+    default-encoding: UTF-8
+    username: 15607074531@163.com # 邮箱
+    password: YEqigrJFKhi6YmnX    # 邮箱的授权码
+    properties:
+      mail:
+        debug: true
+        smtp:
+          auth: true
+          ssl:
+#            trust: smtp.163.com
+            enable: true
+            required: false
+#          starttls:
+#            enable: true
+#            required: true
+#          socketFactory:
+#            port: 465
+#            class: javax.net.ssl.SSLSocketFactory
+
+
+
+# 配置mybatis实体和xml映射
+mybatis:
+  mapper-locations: classpath:mapper/*.xml   # classpath就是resource目录
+  type-aliases-package: com.qzb.springboot.entity
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    map-underscore-to-camel-case: true   # 下划线转驼峰，如stu_name  -> stuName
+
+# 分页
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+
+logging:
+  level:
+#    com.qzb.springboot.mapper: debug # 打印SQL日志
+    com.qzb.springboot: debug # 打印SQL日志
+  file:
+      name: ${qzb.log.file.name}
+
+# 自定义文件上传路径（核心：改为绝对路径，不要用相对路径）
+file:
+  upload:
+    # Windows 示例：D:/nginx/files/
+    # Linux/Mac 示例：/usr/local/nginx/files/
+    path: ${qzb.file.upload.path}  # 指向隔离目录
+    # 前端访问上传文件的前缀（和 Nginx 配置对应）
+    access-path: ${qzb.file.upload.access-path}      # 前端访问前缀
+
+
+# 本地Nginx环境============================================
+#file:
+#  upload:
+#    # Windows 示例：D:/nginx/files/
+#    # Linux/Mac 示例：/usr/local/nginx/files/
+#    path: E:/nginx-1.24.0/resource/task_manage/  # 指向隔离目录
+#    # 前端访问上传文件的前缀（和 Nginx 配置对应）
+#    access-path: /resource/task_manage/      # 前端访问前缀
+
+# 智谱AI(GLM)配置，API Key 从 https://open.bigmodel.cn 获取
+glm:
+  base-url: https://open.bigmodel.cn/api/paas/v4
+  api-key: ${GLM_API_KEY:9214c78f8af4644ffb344ac874bd0a57.kmO98CDdpPA7aIOE}   # 冒号后为默认Key；设置了环境变量 GLM_API_KEY 时仍以环境变量为准
+  model: ${GLM_MODEL:glm-4.5-air}   # 4.5-air：付费低延迟档；可环境变量覆盖；免费档可换 glm-4.5-flash
+  asr-model: glm-asr-2512    # 语音转文本模型(付费，账户需有余额或资源包，与对话共用上面的api-key)
+
+# 自定义模板文件上传路径（项目根目录下的template）
+# 开发环境========================================
+template:
+    path: ${qzb.template.path}
+
+
+
+
+
+

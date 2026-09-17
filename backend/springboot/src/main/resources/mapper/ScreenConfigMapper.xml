@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.ScreenConfigMapper">
+    <resultMap id="BaseResultMap" type="com.qzb.springboot.entity.ScreenConfig">
+        <id column="id" property="id"/>
+        <result column="tid" property="tid"/>
+        <result column="config_name" property="configName"/>
+        <result column="config_json" property="configJson"/>
+        <result column="is_enabled" property="isEnabled"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.qzb.springboot.entity.ScreenConfig" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO screen_config (id,tid, config_name, config_json, is_enabled)
+        VALUES (#{id},#{tid}, #{configName}, #{configJson}, #{isEnabled})
+    </insert>
+
+    <update id="updateById" parameterType="com.qzb.springboot.entity.ScreenConfig">
+        UPDATE screen_config
+        <set>
+            <if test="tid != null">tid = #{tid},</if>
+            <if test="configName != null">config_name = #{configName},</if>
+            <if test="configJson != null">config_json = #{configJson},</if>
+            <if test="isEnabled != null">is_enabled = #{isEnabled},</if>
+            update_time = CURRENT_TIMESTAMP
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="java.lang.String">
+        DELETE FROM screen_config WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM screen_config WHERE id = #{id}
+    </select>
+
+    <select id="selectByTid" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM screen_config WHERE tid = #{tid} ORDER BY update_time DESC
+    </select>
+
+    <select id="selectEnabledByTid" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM screen_config WHERE tid = #{tid} AND is_enabled = 1
+        ORDER BY update_time DESC LIMIT 1
+    </select>
+
+    <select id="checkParamMutilOn" resultType="java.lang.Integer">
+        select count(*) from screen_config where tid=#{tid} and is_enabled = 1
+        and config_name = #{configName}
+    </select>
+
+    <select id="getConfigByTidAndConfigName" resultMap="BaseResultMap">
+        SELECT * FROM screen_config WHERE tid = #{tid} AND is_enabled = 1 and config_name = #{configName}
+        ORDER BY update_time DESC LIMIT 1
+    </select>
+</mapper>

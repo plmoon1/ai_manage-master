@@ -1,0 +1,14 @@
+qzb:
+  db:
+    host: 118.31.165.121
+    pw: Qzb123456*
+    port: 3306
+  log:
+    file:
+      name: /work/task_manage/logs/backend.log
+  file:
+    upload:
+      path: /work/task_manage/resource/  # 指向隔离目录
+      access-path: /resource/     # 前端访问前缀
+  template:
+    path: /work/task_manage/resource/

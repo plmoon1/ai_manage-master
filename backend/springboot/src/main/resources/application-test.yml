@@ -1,0 +1,14 @@
+qzb:
+  db:
+    host: 47.96.66.16
+    pw: Qzb123456*
+    port: 3306
+  log:
+    file:
+      name: ${user.dir}/logs/backend.log
+  file:
+    upload:
+      path: ${user.dir}/files/
+      access-path: /files/
+  template:
+    path: ${user.dir}/template/

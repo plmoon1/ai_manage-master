@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.WorksMapper">
+    <!--    <sql id="Base_Column_List">-->
+    <!--        id,name,detail,attribute,cycle,start_time,end_time,uid,tid,did,type,head,imp,progress,status,achievement,create_time,-->
+    <!--        username,tenant,department-->
+    <!--    </sql>    -->
+
+
+    <sql id="Base_Column_List">
+        works.id,works.name,detail,
+			start_time as startTime,end_time as endTime,
+            works.uid,works.tid,works.did,c.`value` as type_value,type,head,
+			e.`value` as status_value,works.status,achievement,works.create_time as createTime,
+            works.update_time as updateTime,user.name as username,tenant.name as tenant,department.name as department,`isdelete`,isopen,isshow
+    </sql>
+
+    <insert id="addWorks" parameterType="com.qzb.springboot.entity.Works" useGeneratedKeys="true">
+        insert into works
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="name != null">name,</if>
+            <if test="detail != null">detail,</if>
+<!--            <if test="attribute != null">attribute,</if>-->
+            <!--            <if test="cycle != null">cycle,</if>-->
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="uid != null">uid,</if>
+            <if test="tid != null">tid,</if>
+            <if test="did != null">did,</if>
+            <if test="type != null">type,</if>
+<!--            <if test="imp != null">imp,</if>-->
+            <!--            <if test="progress != null">progress,</if>-->
+            <if test="status != null">status,</if>
+            <if test="achievement != null">achievement,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="head != null">head,</if>
+            <if test="isdelete != null">`isdelete`,</if>
+            <if test="isopen != null">`isopen`,</if>
+            <if test="isshow != null">`isshow`,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="name != null">#{name},</if>
+            <if test="detail != null">#{detail},</if>
+<!--            <if test="attribute != null">#{attribute},</if>-->
+            <!--            <if test="cycle != null">#{cycle},</if>-->
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="uid != null">#{uid},</if>
+            <if test="tid != null">#{tid},</if>
+            <if test="did != null">#{did},</if>
+            <if test="type != null">#{type},</if>
+<!--            <if test="imp != null">#{imp},</if>-->
+            <!--            <if test="progress != null">#{progress},</if>-->
+            <if test="status != null">#{status},</if>
+            <if test="achievement != null">#{achievement},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="head != null">#{head},</if>
+            <if test="isdelete != null">#{isdelete},</if>
+            <if test="isopen != null">#{isopen},</if>
+            <if test="isshow != null">#{isshow},</if>
+        </trim>
+    </insert>
+
+    <update id="updateWorks" parameterType="com.qzb.springboot.entity.Works">
+        update works
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="detail != null">detail = #{detail},</if>
+<!--            <if test="attribute != null">`attribute` = #{attribute},</if>-->
+            <!--            <if test="cycle != null">`cycle` = #{cycle},</if>-->
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="uid != null">uid = #{uid},</if>
+            <if test="tid != null">tid = #{tid},</if>
+            <if test="did != null">did = #{did},</if>
+            <if test="type != null">`type` = #{type},</if>
+<!--            <if test="imp != null">imp = #{imp},</if>-->
+            <!--            <if test="progress != null">progress = #{progress},</if>-->
+            <if test="status != null">status = #{status},</if>
+            <if test="achievement != null">achievement = #{achievement},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="head != null">head = #{head},</if>
+            <if test="isdelete != null">`isdelete` = #{isdelete},</if>
+            <if test="isopen != null">`isopen` = #{isopen},</if>
+            <if test="isshow != null">`isshow` = #{isshow},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--    <select id="getAllWorksByPerson" resultType="com.qzb.springboot.entity.Works">-->
+    <!--        select-->
+    <!--            works.id,works.name,detail,attribute,cycle,start_time as startTime,end_time as endTime,-->
+    <!--            works.uid,works.tid,works.did,type,head,imp,progress,works.status,achievement,create_time as createTime,-->
+    <!--            user.name as username,tenant.name as tenant,department.name as department,`delete`-->
+    <!--        from works-->
+    <!--        join tenant on tenant.id = works.tid-->
+    <!--        join department on department.id = works.did-->
+    <!--        join user on user.id = works.uid-->
+    <!--        where works.uid = #{uid} and `delete` = '0'-->
+    <!--        order by works.create_time desc-->
+    <!--    </select>-->
+
+    <select id="getAllWorksByPerson" resultType="com.qzb.springboot.entity.Works">
+        select
+        <include refid="Base_Column_List"></include>
+        from works
+        join tenant on tenant.id = works.tid
+        join department on department.id = works.did
+        join user on user.id = works.uid
+<!--        join sys_dict a on a.id = works.attribute-->
+        <!--                 join sys_dict b on b.id = works.cycle-->
+        join sys_dict c on c.id = works.type
+<!--        join sys_dict d on d.id = works.imp-->
+        join sys_dict e on e.id = works.status
+        where works.uid = #{uid} and `isdelete` = '0'
+        order by works.create_time desc
+    </select>
+
+    <!--    <select id="getAllWorksByDepartment" resultType="com.qzb.springboot.entity.Works">-->
+    <!--        select-->
+    <!--            works.id,works.name,detail,attribute,cycle,start_time as startTime,end_time as endTime,-->
+    <!--            works.uid,works.tid,works.did,type,head,imp,progress,works.status,achievement,create_time as createTime,-->
+    <!--            user.name as username,tenant.name as tenant,department.name as department,`delete`-->
+    <!--        from works-->
+    <!--                 join tenant on tenant.id = works.tid-->
+    <!--                 join department on department.id = works.did-->
+    <!--                 join user on user.id = works.uid-->
+    <!--        where works.tid = #{tid} and works.did = #{did} and `delete` = '0'-->
+    <!--        order by works.create_time desc-->
+    <!--    </select>-->
+
+    <select id="getAllWorksByDepartment" resultType="com.qzb.springboot.entity.Works">
+        select
+        <include refid="Base_Column_List"></include>
+        from works
+        join tenant on tenant.id = works.tid
+        join department on department.id = works.did
+        join user on user.id = works.uid
+<!--        join sys_dict a on a.id = works.attribute-->
+        <!--        join sys_dict b on b.id = works.cycle-->
+        join sys_dict c on c.id = works.type
+<!--        join sys_dict d on d.id = works.imp-->
+        join sys_dict e on e.id = works.status
+        where works.tid = #{tid} and works.did = #{did} and `isdelete` = '0'
+        <if test="isopen != null">and isopen = #{isopen}</if>
+        order by works.create_time desc
+    </select>
+
+    <!--    <select id="getAllWorksByTenant" resultType="com.qzb.springboot.entity.Works">-->
+    <!--        select-->
+    <!--            works.id,works.name,detail,attribute,cycle,start_time as startTime,end_time as endTime,-->
+    <!--            works.uid,works.tid,works.did,type,head,imp,progress,works.status,achievement,create_time as createTime,-->
+    <!--            user.name as username,tenant.name as tenant,department.name as department,`delete`-->
+    <!--        from works-->
+    <!--                 join tenant on tenant.id = works.tid-->
+    <!--                 join department on department.id = works.did-->
+    <!--                 join user on user.id = works.uid-->
+    <!--        where works.tid = #{tid} and `delete` = '0'-->
+    <!--        order by works.create_time desc-->
+    <!--    </select>-->
+
+    <select id="getAllWorksByTenant" resultType="com.qzb.springboot.entity.Works">
+        select
+        <include refid="Base_Column_List"></include>
+        from works
+        join tenant on tenant.id = works.tid
+        join department on department.id = works.did
+        join user on user.id = works.uid
+<!--        join sys_dict a on a.id = works.attribute-->
+        <!--        join sys_dict b on b.id = works.cycle-->
+        join sys_dict c on c.id = works.type
+<!--        join sys_dict d on d.id = works.imp-->
+        join sys_dict e on e.id = works.status
+        where works.tid = #{tid} and `isdelete` = '0'
+        order by works.create_time desc
+    </select>
+
+    <select id="screenGetAllWorksByTenant" resultType="com.qzb.springboot.entity.Works">
+        select
+        <include refid="Base_Column_List"></include>
+        from works
+        join tenant on tenant.id = works.tid
+        join department on department.id = works.did
+        join user on user.id = works.uid
+<!--        join sys_dict a on a.id = works.attribute-->
+        <!--        join sys_dict b on b.id = works.cycle-->
+        join sys_dict c on c.id = works.type
+<!--        join sys_dict d on d.id = works.imp-->
+        join sys_dict e on e.id = works.status
+        where works.tid = #{tid} and `isdelete` = '0' and isshow = '1'
+        order by works.create_time desc
+    </select>
+
+
+    <select id="getWorksNumPrepareByPerson" resultType="java.lang.Integer">
+        select
+            count(*)
+        from works
+        where tid = #{tid} and did = #{did} and uid = #{uid} and status = "未开始"
+    </select>
+
+    <select id="getWorksNumCompleteByPerson" resultType="java.lang.Integer">
+        select
+            count(*)
+        from works
+        where tid = #{tid} and did = #{did} and uid = #{uid} and status = "已完成"
+    </select>
+
+    <select id="getWorksNumDoingByPerson" resultType="java.lang.Integer">
+        select
+            count(*)
+        from works
+        where tid = #{tid} and did = #{did} and uid = #{uid} and status = "进行中"
+    </select>
+
+    <select id="getWorksNumCancelByPerson" resultType="java.lang.Integer">
+        select
+            count(*)
+        from works
+        where tid = #{tid} and did = #{did} and uid = #{uid} and status = "已撤销"
+    </select>
+
+    <select id="getWorksNumPrepareByDepartment" resultType="java.lang.Integer">
+        select
+            count(*)
+        from works
+        where tid = #{tid} and did = #{did}  and status = "未开始"
+    </select>
+
+    <select id="getWorksNumCompleteByDepartment" resultType="java.lang.Integer">
+        select
+            count(*)
+        from works
+        where tid = #{tid} and did = #{did}  and status = "已完成"
+    </select>
+
+    <select id="getWorksNumDoingByDepartment" resultType="java.lang.Integer">
+        select
+            count(*)
+        from works
+        where tid = #{tid} and did = #{did}  and status = "进行中"
+    </select>
+
+    <select id="getWorksNumCancelByDepartment" resultType="java.lang.Integer">
+        select
+            count(*)
+        from works
+        where tid = #{tid} and did = #{did}  and status = "已撤销"
+    </select>
+
+    <!--    <select id="getWorksDetail" resultType="com.qzb.springboot.entity.Works">-->
+    <!--        select-->
+    <!--        works.id,works.name,detail,attribute,cycle,start_time as startTime,end_time as endTime,-->
+    <!--        works.uid,works.tid,works.did,type,head,imp,progress,works.status,achievement,create_time as createTime,-->
+    <!--        user.name as username,tenant.name as tenant,department.name as department,`delete`-->
+    <!--        from works-->
+    <!--        join tenant on tenant.id = works.tid-->
+    <!--        join department on department.id = works.did-->
+    <!--        join user on user.id = works.uid-->
+    <!--        <where>-->
+    <!--            <if test="delete == null">-->
+    <!--                and works.delete = '0'-->
+    <!--            </if>-->
+    <!--            <if test="id != null"> and works.id= #{id}</if>-->
+    <!--            <if test="uid != null"> and works.uid= #{uid}</if>-->
+    <!--            <if test="did != null"> and works.id= #{did}</if>-->
+    <!--            <if test="status != null"> and works.status= #{status}</if>-->
+    <!--        </where>-->
+    <!--        order by works.create_time desc-->
+    <!--    </select>-->
+    <select id="getWorksDetail" resultType="com.qzb.springboot.entity.Works">
+        select
+        <include refid="Base_Column_List"></include>
+        from works
+        join tenant on tenant.id = works.tid
+        join department on department.id = works.did
+        join user on user.id = works.uid
+<!--        join sys_dict a on a.id = works.attribute-->
+        <!--        join sys_dict b on b.id = works.cycle-->
+        join sys_dict c on c.id = works.type
+<!--        join sys_dict d on d.id = works.imp-->
+        join sys_dict e on e.id = works.status
+        <where>
+            <if test="isdelete == null">
+                and works.isdelete = '0'
+            </if>
+            <if test="id != null"> and works.id= #{id}</if>
+            <if test="uid != null"> and works.uid= #{uid}</if>
+            <if test="did != null"> and works.id= #{did}</if>
+            <if test="status != null"> and works.status= #{status}</if>
+        </where>
+        order by works.create_time desc
+    </select>
+
+<!--    <insert id="addWorksLog" parameterType="com.qzb.springboot.entity.WorksLog" useGeneratedKeys="true">-->
+<!--        insert into works_log-->
+<!--        <trim prefix="(" suffix=")" suffixOverrides=",">-->
+<!--            <if test="id != null">id,</if>-->
+<!--            <if test="content != null">content,</if>-->
+<!--            <if test="pid != null">pid,</if>-->
+<!--            <if test="createTime != null">create_time,</if>-->
+<!--        </trim>-->
+<!--        <trim prefix="values (" suffix=")" suffixOverrides=",">-->
+<!--            <if test="id != null">#{id},</if>-->
+<!--            <if test="content != null">#{content},</if>-->
+<!--            <if test="pid != null">#{pid},</if>-->
+<!--            <if test="createTime != null">#{createTime},</if>-->
+<!--        </trim>-->
+<!--    </insert>-->
+
+<!--    <update id="updateWorksLog" parameterType="com.qzb.springboot.entity.WorksLog">-->
+<!--        update works_log-->
+<!--        <set>-->
+<!--            <if test="content != null">-->
+<!--                content = #{content},-->
+<!--            </if>-->
+<!--        </set>-->
+<!--        where id = #{id}-->
+<!--    </update>-->
+
+    <delete id="deleteWorksLog">
+        delete from works_log
+        where  id = #{id}
+    </delete>
+
+    <select id="getWorksLogByPid" >
+        select id,content,pid,create_time as createTime,works
+        from works_log
+        where pid = #{pid}
+        order by works_log.create_time
+    </select>
+
+    <!--    <select id="searchWorksByCondition" parameterType="com.qzb.springboot.entity.Works" resultType="com.qzb.springboot.entity.Works">-->
+    <!--        select-->
+    <!--            works.id,works.name,detail,attribute,cycle,start_time as startTime,end_time as endTime,-->
+    <!--            works.uid,works.tid,works.did,type,head,imp,progress,works.status,achievement,create_time as createTime,-->
+    <!--            user.name as username,tenant.name as tenant,department.name as department,`delete`-->
+    <!--        from works-->
+    <!--                 join tenant on tenant.id = works.tid-->
+    <!--                 join department on department.id = works.did-->
+    <!--                 join user on user.id = works.uid-->
+    <!--        <where>-->
+    <!--            <if test="id != null"> and works.id= #{id}</if>-->
+    <!--            <if test="tid != null"> and works.tid= #{tid}</if>-->
+    <!--            <if test="uid != null"> and works.uid = #{uid}</if>-->
+    <!--            <if test="did != null"> and works.did = #{did}</if>-->
+    <!--            <if test="name != null"> and works.name like concat('%', #{name}, '%')</if>-->
+    <!--            <if test="status != null"> and works.status = #{status}</if>-->
+    <!--            <if test="attribute != null"> and works.attribute = #{attribute}</if>-->
+    <!--            <if test="cycle != null"> and works.cycle = #{cycle}</if>-->
+    <!--            <if test="type != null"> and works.type = #{type}</if>-->
+    <!--            <if test="head != null"> and works.head = #{head}</if>-->
+    <!--            <if test="imp != null"> and works.imp = #{imp}</if>-->
+    <!--            <if test="username != null"> and works.username like concat('%', #{username}, '%')</if>-->
+    <!--        </where>-->
+    <!--        order by works.create_time desc-->
+    <!--    </select>-->
+
+    <select id="searchWorksByCondition" parameterType="com.qzb.springboot.entity.Works" resultType="com.qzb.springboot.entity.Works">
+        select
+        <include refid="Base_Column_List"></include>
+        from works
+        join tenant on tenant.id = works.tid
+        join department on department.id = works.did
+        join user on user.id = works.uid
+<!--        join sys_dict a on a.id = works.attribute-->
+        <!--        join sys_dict b on b.id = works.cycle-->
+        join sys_dict c on c.id = works.type
+<!--        join sys_dict d on d.id = works.imp-->
+        join sys_dict e on e.id = works.status
+        <where>
+            <if test="id != null"> and works.id= #{id}</if>
+            <if test="tid != null"> and works.tid= #{tid}</if>
+            <if test="uid != null"> and works.uid = #{uid}</if>
+            <if test="did != null"> and works.did = #{did}</if>
+            <if test="name != null"> and works.name like concat('%', #{name}, '%')</if>
+            <if test="status != null"> and works.status = #{status}</if>
+<!--            <if test="attribute != null"> and works.attribute = #{attribute}</if>-->
+            <!--            <if test="cycle != null"> and works.cycle = #{cycle}</if>-->
+            <if test="type != null"> and works.type = #{type}</if>
+            <if test="head != null"> and works.head = #{head}</if>
+<!--            <if test="imp != null"> and works.imp = #{imp}</if>-->
+            <if test="isopen != null"> and works.isopen = #{isopen}</if>
+            <if test="isshow != null"> and works.isshow = #{isshow}</if>
+            <if test="username != null"> and works.username like concat('%', #{username}, '%')</if>
+            <!-- 时间条件（纯String字符串比较） -->
+            <if test="startTime != null and startTime != ''">
+                and works.end_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and works.start_time &lt;= #{endTime}
+            </if>
+            and `isdelete` = '0'
+        </where>
+        order by works.create_time desc
+    </select>
+
+    <insert id="addWorksFile" parameterType="com.qzb.springboot.entity.WorksFiles" useGeneratedKeys="true">
+        insert into works_files
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="name != null">name,</if>
+            <if test="type != null">type,</if>
+            <if test="pid != null">pid,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="name != null">#{name},</if>
+            <if test="type != null">#{type},</if>
+            <if test="pid != null">#{pid},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <select id="getWorksFiles" resultType="com.qzb.springboot.entity.WorksFiles">
+        select id,name,type,pid, create_time as createTime
+        from works_files
+        where pid = #{pid}
+        order by works_files.create_time
+    </select>
+
+    <delete id="deleteWorksFiles">
+        delete from works_files
+        where  id = #{id}
+    </delete>
+
+
+    <select id="getWorksDidByFileName" resultType="java.lang.String">
+        select did
+        from works_files
+                 join works on works.id = works_files.pid
+        where works_files.name = #{file}
+    </select>
+
+    <select id="getWorksDidByPfid" resultType="java.lang.String">
+        select pid
+        from works_files
+        where id = #{pfid}
+    </select>
+
+    <select id="getWorksDidById" resultType="java.lang.String">
+        select did
+        from works
+        where id = #{pid}
+    </select>
+
+    <select id="selectWorksByIdsAndTid" resultType="com.qzb.springboot.entity.Works">
+        select works.name,
+               detail,
+               department.name as did,
+               start_time as startTime,
+               end_time as endTime,
+               works.type,
+               c.`value` as type_value,
+              CASE WHEN works.isopen = '1' THEN '公开' ELSE '私密' END as isopen,
+              CASE WHEN works.isshow = '1' THEN '是' ELSE '否' END as isshow,
+               head,
+               e.`value` as status,
+               achievement
+        from works
+        join tenant on tenant.id = works.tid
+        join department on department.id = works.did
+        join user on user.id = works.uid
+        join sys_dict c on c.id = works.type
+        join sys_dict e on e.id = works.status
+        WHERE works.id IN
+        <foreach collection='ids' item='id' open='(' separator=',' close=')'>
+            #{id}
+        </foreach>
+        AND works.tid = #{tid}
+    </select>
+</mapper>

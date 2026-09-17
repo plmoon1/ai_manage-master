@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.DepartmentMapper">
+
+    <select id="getDepartmentByTid" parameterType="com.qzb.springboot.entity.Department" resultType="com.qzb.springboot.entity.Department">
+        select d.id,d.name,d.tid,t.name as tenant
+        from department d
+        inner join tenant t on t.id = d.tid
+        where d.tid = #{tid} and d.name!="系统管理中心"
+    </select>
+
+    <insert id="addDepartment" parameterType="com.qzb.springboot.entity.Department" useGeneratedKeys="true">
+        insert into department
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="name != null">name,</if>
+            <if test="tid != null">tid,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="name != null">#{name},</if>
+            <if test="tid != null">#{tid},</if>
+        </trim>
+    </insert>
+
+    <update id="updateDepartment" parameterType="com.qzb.springboot.entity.Department">
+        update department
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+        </set>
+        where tid = #{tid} and id = #{id}
+    </update>
+
+    <delete id="deleteDepartment" parameterType="com.qzb.springboot.entity.Department">
+        delete from department
+        where  id = #{id} and tid = #{tid}
+    </delete>
+
+    <select id="getDepartmentByDid" resultType="com.qzb.springboot.entity.Department">
+        select d.id,d.name,d.tid,t.name as tenant
+        from department d
+                 inner join tenant t on t.id = d.tid
+        where d.tid = #{tid} and d.name = #{name}
+    </select>
+</mapper>

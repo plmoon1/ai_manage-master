@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.UserMapper">
+    <sql id="Base_Column_List">
+        id,name,password,tid,did,rid,phone,email,role,token,department,tenant,status
+    </sql>
+
+    <insert id="addUser" parameterType="com.qzb.springboot.entity.User" useGeneratedKeys="true">
+        insert into user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="name != null">name,</if>
+            <if test="password != null">password,</if>
+            <if test="tid != null">tid,</if>
+            <if test="did != null">did,</if>
+            <if test="rid != null">rid,</if>
+            <if test="phone != null">phone,</if>
+            <if test="email!= null">email,</if>
+            <if test="status!= null">status,</if>
+            <if test="createTime!= null">create_time,</if>
+            <if test="updateTime!= null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="name != null">#{name},</if>
+            <if test="password != null">#{password},</if>
+            <if test="tid != null">#{tid},</if>
+            <if test="did != null">#{did},</if>
+            <if test="rid != null">#{rid},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="email!= null">#{email},</if>
+            <if test="status!= null">#{status},</if>
+            <if test="createTime!= null">#{createTime},</if>
+            <if test="updateTime!= null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateUser" parameterType="com.qzb.springboot.entity.User" useGeneratedKeys="true">
+        update user
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="tid != null">
+                tid = #{tid},
+            </if>
+            <if test="did != null">
+                did = #{did},
+            </if>
+            <if test="rid != null">
+                rid = #{rid},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="phone != null">
+                phone = #{phone},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where tid = #{tid}  and id = #{id}
+    </update>
+
+    <select id="getUserInfo" resultType="com.qzb.springboot.entity.User">
+        select user.id, user.name, `password`, user.tid, did, rid, phone, email,
+               `status`,tenant.name as tenant,department.`name` as department,role.name as role,
+                user.create_time as createTime,user.update_time as updateTime
+        from `user`
+                 join tenant on tenant.id = user.tid
+                 join department on department.id = user.did
+                 join role on role.id = user.rid
+        where `user`.id = #{id} and `status` = "正常"
+    </select>
+
+    <update id="updateUserBySelf" parameterType="com.qzb.springboot.entity.User" useGeneratedKeys="true">
+        update user
+        <set>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="phone != null">
+                phone = #{phone},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+        </set>
+        where tid = #{tid} and did = #{did} and id = #{id}
+    </update>
+
+    <select id="getAllUser" resultType="com.qzb.springboot.entity.User">
+        select user.id, user.name, `password`, user.tid, did, rid, phone, email,
+               `status`,tenant.name as tenant,department.`name` as department,role.name as role,user.create_time as createTime,user.update_time as updateTime
+        from `user`
+                 join tenant on tenant.id = user.tid
+                 join department on department.id = user.did
+                 join role on role.id = user.rid
+        where `user`.tid = #{tid} order by create_time desc
+    </select>
+
+
+    <delete id="deleteUser">
+        delete from user
+        where  id = #{uid} and tid = #{tid}
+    </delete>
+
+
+    <select id="getUserByCondition" parameterType="com.qzb.springboot.entity.User" resultType="com.qzb.springboot.entity.User">
+        select user.id, user.name, `password`, user.tid, did, rid, phone, email,
+               `status`,tenant.name as tenant,department.`name` as department,
+                role.name as role,user.create_time as createTime,user.update_time as updateTime
+        from `user`
+                 join tenant on tenant.id = user.tid
+                 join department on department.id = user.did
+                 join role on role.id = user.rid
+        <where>
+            <if test="department != null"> and department.name= #{department}</if>
+            <if test="status != null"> and status = #{status} </if>
+            <if test="id != null"> and user.id like concat('%', #{id}, '%')  </if>
+            <if test="name != null"> and user.name like concat('%', #{name}, '%')  </if>
+            <if test="role != null"> and user.role = #{role} </if>
+            <if test="tid != null"> and user.tid = #{tid} </if>
+            <if test="did != null"> and user.did = #{did} </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="getUserByUsernameAndTid" resultType="com.qzb.springboot.entity.User">
+        SELECT u.*, r.name as role
+        FROM `user` u
+                 LEFT JOIN `role` r ON u.rid = r.id AND u.tid = r.tid
+        WHERE u.name = #{username} AND u.tid = #{tid}
+    </select>
+
+    <!-- 根据角色ID+租户ID查询权限 -->
+    <select id="getPermissionsByRoleIdAndTid" resultType="com.qzb.springboot.entity.Permission">
+        SELECT p.*
+        FROM sys_permission p
+                 LEFT JOIN role_permission rp ON p.id = rp.pid AND p.tid = rp.tid
+        WHERE rp.rid = #{rid} AND p.tid = #{tid}
+    </select>
+
+    <update id="resetUser">
+        update user set password = id where id = #{uid}
+    </update>
+</mapper>

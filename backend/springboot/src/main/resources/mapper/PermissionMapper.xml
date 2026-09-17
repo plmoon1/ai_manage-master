@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.PermissionMapper">
+
+    <select id="getAllPermissionByTid" resultType="com.qzb.springboot.entity.Permission">
+        select id,tid,name,permission,type,parent_id from sys_permission
+        <where>
+            <if test="parentId != null and parentId != ''"> and parent_id = #{parentId}</if>
+            <if test="tid != null and tid != '' "> and tid = #{tid}</if>
+        </where>
+        order by name
+    </select>
+
+    <select id="getAllPermissionByRid" resultType="com.qzb.springboot.entity.Permission">
+        SELECT p.*
+        FROM sys_permission p
+                 LEFT JOIN role_permission rp ON p.id = rp.pid AND p.tid = rp.tid
+        WHERE rp.rid = #{rid} AND p.tid = #{tid}
+        order by permission
+    </select>
+
+    <insert id="addPermissionToRole" parameterType="com.qzb.springboot.entity.RolePermission">
+        INSERT INTO role_permission (rid, pid, tid) VALUES
+        <foreach collection='pids' item='pid' separator=','>
+        (#{rid}, #{pid}, #{tid})
+        </foreach>
+    </insert>
+
+    <insert id="addPermission">
+        insert into sys_permission(id,parent_id,tid,name,permission,type) values (#{id},#{parentId},#{tid},#{name},#{permission},#{type})
+    </insert>
+
+    <delete id="deleteByRoleId">
+        DELETE FROM role_permission WHERE rid = #{rid}
+    </delete>
+
+    <select id="getPermissionMenu" resultType="com.qzb.springboot.entity.Permission">
+        select id,tid,name,permission,type,parent_id from sys_permission where tid = #{tid} and type ='1' order by name
+    </select>
+
+    <update id="updatePermission">
+        update sys_permission
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="permission != null">permission = #{permission},</if>
+            <if test="type != null">`type` = #{type},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deletePermission">
+        delete from sys_permission where id = #{id}
+    </delete>
+
+    <select id="getPermissionNum" resultType="java.lang.Integer">
+        select count(*) from role_permission where rid = #{rid}
+    </select>
+</mapper>

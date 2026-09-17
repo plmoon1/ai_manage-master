@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.MeetingMapper">
+    <!-- 通用查询映射 -->
+    <resultMap id="BaseResultMap" type="com.qzb.springboot.entity.Meeting">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="meeting_type" property="meetingType" jdbcType="VARCHAR"/>
+        <result column="start_week" property="startWeek" jdbcType="VARCHAR"/>
+        <result column="end_week" property="endWeek" jdbcType="VARCHAR"/>
+        <result column="start_date" property="startDate" jdbcType="VARCHAR"/>
+        <result column="end_date" property="endDate" jdbcType="VARCHAR"/>
+        <result column="start_start_time" property="startStartTime" jdbcType="VARCHAR"/>
+<!--        <result column="start_end_time" property="startEndTime" jdbcType="VARCHAR"/>-->
+<!--        <result column="end_start_time" property="endStartTime" jdbcType="VARCHAR"/>-->
+        <result column="end_end_time" property="endEndTime" jdbcType="VARCHAR"/>
+        <result column="start_time" property="startTime" jdbcType="VARCHAR"/>
+        <result column="end_time" property="endTime" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="meeting_name" property="meetingName" jdbcType="VARCHAR"/>
+        <result column="host" property="host" jdbcType="VARCHAR"/>
+        <result column="participants" property="participants" jdbcType="VARCHAR"/>
+        <result column="location" property="location" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="isdelete" property="isdelete" jdbcType="VARCHAR"/>
+        <result column="isshow" property="isshow" jdbcType="VARCHAR"/>
+        <result column="statusValue" property="statusValue" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 通用查询列 -->
+    <sql id="Base_Column_List">
+        meeting.id, meeting_type, start_week, end_week,start_date,end_date,
+        start_start_time,
+<!--        start_end_time,end_start_time,-->
+        end_end_time,
+        meeting.status,sys_dict.value as statusValue,
+        meeting_name, host, participants, location, meeting.tid,uid,create_time, update_time,
+        isdelete,isshow
+    </sql>
+
+    <insert id="addMeeting" parameterType="com.qzb.springboot.entity.Meeting">
+        insert into meeting
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="meetingType != null">meeting_type,</if>
+            <if test="startWeek != null">start_week,</if>
+            <if test="endWeek != null">end_week,</if>
+            <if test="startDate != null">start_date,</if>
+            <if test="endDate != null">end_date,</if>
+            <if test="startStartTime != null">start_start_time,</if>
+<!--            <if test="startEndTime != null">start_end_time,</if>-->
+<!--            <if test="endStartTime != null">end_start_time,</if>-->
+            <if test="endEndTime != null">end_end_time,</if>
+            <if test="status != null">status,</if>
+            <if test="meetingName != null">meeting_name,</if>
+            <if test="host != null">host,</if>
+            <if test="participants != null">participants,</if>
+            <if test="location != null">location,</if>
+            <if test="tid != null">tid,</if>
+            <if test="uid != null">uid,</if>
+            <if test="isdelete != null">isdelete,</if>
+            <if test="isshow != null">isshow,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="meetingType != null">#{meetingType},</if>
+            <if test="startWeek != null">#{startWeek},</if>
+            <if test="endWeek != null">#{endWeek},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="startStartTime != null">#{startStartTime},</if>
+<!--            <if test="startEndTime != null">#{startEndTime},</if>-->
+<!--            <if test="endStartTime != null">#{endStartTime},</if>-->
+            <if test="endEndTime != null">#{endEndTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="meetingName != null">#{meetingName},</if>
+            <if test="host != null">#{host},</if>
+            <if test="participants != null">#{participants},</if>
+            <if test="location != null">#{location},</if>
+            <if test="tid != null">#{tid},</if>
+            <if test="uid != null">#{uid},</if>
+            <if test="isdelete != null">#{isdelete},</if>
+            <if test="isshow != null">#{isshow},</if>
+        </trim>
+    </insert>
+
+<!--    要求：-->
+<!--    常规区间（周一→周四）+ 跨周循环区间（周六→周二）。-->
+<!--    星期比较原理：-->
+<!--    (start <= end AND 目标 BETWEEN start AND end)-->
+<!--    OR-->
+<!--    (start > end AND (目标 >= start OR 目标 <= end))-->
+    <select id="getMeetingByConditionPage" parameterType="com.qzb.springboot.entity.Meeting" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"></include> from meeting
+        left join sys_dict on meeting.status = sys_dict.id
+        <where>
+            <if test="id != null">and meeting.id = #{id}</if>
+            <if test="meetingType != null"> and meeting_type= #{meetingType}</if>
+<!--            <if test="startWeek != null"> and (start_week = #{startWeek} or end_week = #{startWeek})</if>-->
+            <if test="startWeek != null">
+                AND (
+<!--                情况1：end_week 为空（null或空字符串）→ 仅匹配 开始星期 = 传入的星期-->
+                (
+                (end_week IS NULL OR end_week = '')
+                AND
+                start_week = #{startWeek}
+                )
+<!--             情况2：end_week 不为空 → 执行原区间判断（常规+跨周循环）-->
+                OR
+                (
+                end_week IS NOT NULL AND end_week != ''
+                AND
+                (
+<!--                常规区间-->
+                (
+                CASE start_week WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                &lt;=
+                CASE end_week WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                AND
+                CASE #{startWeek} WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                BETWEEN
+                CASE start_week WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                AND
+                CASE end_week WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                )
+<!--                跨周区间-->
+                OR
+                (
+                CASE start_week WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                &gt;
+                CASE end_week WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                AND
+                (
+                CASE #{startWeek} WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                &gt;=
+                CASE start_week WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                OR
+                CASE #{startWeek} WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                &lt;=
+                CASE end_week WHEN '星期一' THEN 1 WHEN '星期二' THEN 2 WHEN '星期三' THEN 3 WHEN '星期四' THEN 4 WHEN '星期五' THEN 5 WHEN '星期六' THEN 6 WHEN '星期日' THEN 7 END
+                )
+                )
+                )
+                )
+                )
+            </if>
+            <if test="endWeek != null"> and end_week = #{endWeek}</if>
+            <if test="startDate != null">
+                AND (
+                (meeting_type = '0' AND start_date = #{startDate})
+                OR
+                (meeting_type = '1' AND start_date &lt;= #{startDate} AND end_date >= #{startDate} )
+                )
+            </if>
+            <if test="endDate != null"> and end_date = #{endDate}</if>
+            <if test="startStartTime != null"> and start_start_time = #{startStartTime}</if>
+<!--            <if test="startEndTime != null"> and start_end_time = #{startEndTime}</if>-->
+<!--            <if test="endStartTime != null"> and end_start_time = #{endStartTime}</if>-->
+            <if test="endEndTime != null"> and end_end_time = #{endEndTime}</if>
+            <if test="status != null"> and status = #{status}</if>
+            <if test="meetingName != null"> and meeting_name like concat('%', #{meetingName}, '%')</if>
+            <if test="host != null"> and host like concat('%', #{host}, '%') </if>
+            <if test="participants != null"> and participants = #{participants}</if>
+            <if test="location != null"> and location like concat('%', #{location}, '%')</if>
+            <if test="tid != null"> and  meeting.tid = #{tid}</if>
+            <if test="uid != null"> and  uid = #{uid}</if>
+            <!-- ===================== 时间条件（纯String字符串比较） ===================== -->
+            <!-- 传入开始时间不为空：计划结束时间 >= 传入开始时间 -->
+            <if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+                AND (
+                (meeting_type = '1' AND end_date >= #{startTime} AND start_date &lt;= #{endTime})
+                OR
+                (meeting_type = '0' AND start_date >= #{startTime} AND start_date &lt;= #{endTime})
+                )
+            </if>
+
+            and isdelete != '1'
+        </where>
+        order by start_date desc,end_date desc
+    </select>
+
+    <select id="getMeetingById" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"></include> from meeting
+        left join sys_dict on meeting.status = sys_dict.id
+        where meeting.id = #{id}
+    </select>
+
+    <update id="updateMeeting" parameterType="com.qzb.springboot.entity.Meeting">
+        update meeting
+        <set>
+            <if test="meetingType != null"> meeting_type= #{meetingType},</if>
+            <if test="startWeek != null">start_week = #{startWeek},</if>
+            <if test="endWeek != null">end_week = #{endWeek},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="startStartTime != null">start_start_time = #{startStartTime},</if>
+<!--            <if test="startEndTime != null">start_end_time = #{startEndTime},</if>-->
+<!--            <if test="endStartTime != null">end_start_time = #{endStartTime},</if>-->
+            <if test="endEndTime != null">end_end_time = #{endEndTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="meetingName != null">meeting_name = #{meetingName},</if>
+            <if test="host != null">host = #{host},</if>
+            <if test="participants != null">participants = #{participants},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="isdelete != null">isdelete = #{isdelete},</if>
+            <if test="isshow != null">isshow = #{isshow}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteMeetingByID" parameterType="com.qzb.springboot.entity.Meeting">
+        delete from meeting where id = #{id}
+    </delete>
+
+    <select id="getMeetingByTenantPage"  resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"></include>from meeting
+        left join sys_dict on meeting.status = sys_dict.id
+        where meeting.tid = #{tid} and isdelete != '1'
+    </select>
+
+    <select id="screenGetAllMeetingByTenantAndTime" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"></include>from meeting
+        left join sys_dict on meeting.status = sys_dict.id
+        where meeting.tid = #{tid} and isdelete != '1'  and isshow = '1' and start_date >= #{startTime} and start_date &lt;= #{endTime}
+        order by start_date desc,end_date desc
+    </select>
+
+    <select id="selectMeetingByIdsAndTid" resultType="com.qzb.springboot.entity.Meeting">
+        select meeting.id,
+        CASE WHEN meeting_type = '0' THEN '单日会议' ELSE '多日会议' END as meetingType,
+        start_week as startWeek, end_week as endWeek,
+        start_date as startDate,end_date as endDate,start_start_time as startStartTime,
+<!--        start_end_time as startEndTime,end_start_time as endStartTime,-->
+        end_end_time as endEndTime,
+        sys_dict.value as status,meeting_name as meetingName, host, participants, location,
+        CASE WHEN isshow = '1' THEN '是' ELSE '否' END as isshow
+        from meeting
+        left join sys_dict on meeting.status = sys_dict.id
+        WHERE meeting.id IN
+        <foreach collection='ids' item='id' open='(' separator=',' close=')'>
+            #{id}
+        </foreach>
+        AND meeting.tid = #{tid}
+        order by start_date desc,end_date desc
+    </select>
+
+
+    <!-- 查询需要更新为已结束的会议 -->
+<!--    <select id="selectNeedUpdateMeetings" resultType="java.lang.String">
+        SELECT id FROM meeting
+        WHERE isdelete = '0' &#45;&#45; 只处理未删除的会议
+        AND (
+&lt;!&ndash;         1. 单日会议：start_date ≤ 当天 且 结束时间 < 当前时间&ndash;&gt;
+        (meeting_type = '0' AND start_date &lt;= #{today}
+        AND (REPLACE(end_end_time, '上午', '') &lt;= #{currentTime}
+        OR REPLACE(end_end_time, '下午', '') &lt;= #{currentTime}))
+
+        OR
+
+&lt;!&ndash;         2. 多日会议：end_date ≤ 当天 且 结束时间 < 当前时间&ndash;&gt;
+        (meeting_type = '1' AND end_date &lt;= #{today}
+        AND (REPLACE(end_end_time, '上午', '') &lt;= #{currentTime}
+        OR REPLACE(end_end_time, '下午', '') &lt;= #{currentTime}))
+        )
+
+        AND tid = #{tid}
+        AND status not in (#{cancelledStatusId},#{finishedStatusId})
+    </select>-->
+
+
+    <!-- 查询需要更新为已结束的会议 -->
+    <select id="selectNeedUpdateMeetings" resultType="java.lang.String">
+        SELECT id FROM meeting
+        WHERE isdelete = '0' -- 只处理未删除的会议
+        AND (
+        <!-- 1. 单日会议 -->
+        (meeting_type = '0' AND (
+        -- 情况1：会议日期在今天之前，无论几点都已结束
+        start_date &lt; #{today}
+        -- 情况2：会议日期就是今天，需判断当前时间是否超过结束时间
+        OR (start_date = #{today} AND
+        REPLACE(REPLACE(end_end_time, '上午', ''), '下午', '') &lt;= #{currentTime}
+        )
+        ))
+
+        OR
+
+        <!-- 2. 多日会议 -->
+        (meeting_type = '1' AND (
+        -- 情况1：会议结束日期在今天之前，无论几点都已结束
+        end_date &lt; #{today}
+        -- 情况2：会议结束日期就是今天，需判断当前时间是否超过结束时间
+        OR (end_date = #{today} AND
+        REPLACE(REPLACE(end_end_time, '上午', ''), '下午', '') &lt;= #{currentTime}
+        )
+        ))
+        )
+        AND tid = #{tid}
+        AND status NOT IN (#{cancelledStatusId}, #{finishedStatusId})
+    </select>
+
+    <!-- 批量更新会议状态 -->
+    <update id="updateMeetingBatchStatus">
+        UPDATE meeting
+        SET status = #{finishedStatusId}
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+
+</mapper>

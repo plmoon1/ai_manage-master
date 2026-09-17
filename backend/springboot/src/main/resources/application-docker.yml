@@ -1,0 +1,14 @@
+qzb:
+  db:
+    host: task_manage_mysql
+    pw: Qzb123456*
+    port: 3306
+  log:
+    file:
+      name: /app/logs/backend.log
+  file:
+    upload:
+      path: /app/resource/
+      access-path: /resource/
+  template:
+    path: /app/resource/

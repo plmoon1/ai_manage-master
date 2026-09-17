@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.AiChatMessageMapper">
+
+    <select id="listBySid" resultType="com.qzb.springboot.entity.AiChatMessage">
+        select id, sid, role, content, tasks, options, create_time as createTime
+        from ai_chat_message
+        where sid = #{sid}
+        order by seq asc
+    </select>
+
+    <select id="getById" resultType="com.qzb.springboot.entity.AiChatMessage">
+        select id, sid, role, content, tasks, options, create_time as createTime
+        from ai_chat_message
+        where id = #{id}
+    </select>
+
+    <insert id="insertBatch">
+        insert into ai_chat_message (id, sid, role, content, tasks, options, create_time)
+        values
+        <foreach collection="messages" item="m" separator=",">
+            (#{m.id}, #{m.sid}, #{m.role}, #{m.content}, #{m.tasks}, #{m.options}, now())
+        </foreach>
+    </insert>
+
+    <delete id="deleteBySid">
+        delete from ai_chat_message where sid = #{sid}
+    </delete>
+
+    <delete id="deleteByIds">
+        delete from ai_chat_message where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="countBySid" resultType="int">
+        select count(*) from ai_chat_message where sid = #{sid}
+    </select>
+
+</mapper>

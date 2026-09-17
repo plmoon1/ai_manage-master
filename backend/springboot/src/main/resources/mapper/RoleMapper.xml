@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.RoleMapper">
+
+    <select id="getAllRole"  resultType="com.qzb.springboot.entity.Role">
+        select id,name from role where id not in ("4","5")
+    </select>
+
+    <select id="getRoleIdByName"  resultType="java.lang.String">
+        select id,name from role
+        where name = #{name}
+    </select>
+
+    <select id="getAllRoleByTid" resultType="com.qzb.springboot.entity.Role">
+        select id,name,tid from role where tid = #{tid}
+    </select>
+
+    <insert id="addRole" parameterType="com.qzb.springboot.entity.Role">
+        insert into role(id,name,tid) values (#{id},#{name},#{tid})
+    </insert>
+
+    <update id="updateRole" parameterType="com.qzb.springboot.entity.Role">
+        update role set name = #{name} where id = #{id}
+    </update>
+
+    <delete id="deleteRole">
+        delete from role where id = #{id}
+    </delete>
+</mapper>

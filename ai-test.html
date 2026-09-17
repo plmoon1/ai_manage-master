@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AI 助手测试页 - 任务管理系统</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", sans-serif; background: #f0f2f5; height: 100vh; display: flex; flex-direction: column; }
+  .topbar { background: #1f6feb; color: #fff; padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .topbar input { flex: 1; min-width: 260px; padding: 6px 10px; border: none; border-radius: 4px; font-size: 13px; }
+  .topbar button { padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  .btn-clear { background: #ffffff33; color: #fff; }
+  #chat { flex: 1; overflow-y: auto; padding: 16px; }
+  .msg { max-width: 76%; margin-bottom: 12px; padding: 10px 14px; border-radius: 10px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .user { background: #1f6feb; color: #fff; margin-left: auto; }
+  .ai { background: #fff; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .ai.err { background: #fff1f0; color: #cf1322; }
+  .meta { font-size: 11px; opacity: .6; margin-top: 4px; }
+  .bottom { padding: 12px 16px; background: #fff; display: flex; gap: 8px; box-shadow: 0 -1px 4px rgba(0,0,0,.06); }
+  .bottom textarea { flex: 1; resize: none; height: 44px; padding: 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; font-family: inherit; }
+  .bottom button { border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
+  #voiceBtn { width: 96px; height: 44px; background: #e8f0fe; color: #1f6feb; }
+  #voiceBtn.rec { background: #1f6feb; color: #fff; }
+  #send { width: 88px; background: #1f6feb; color: #fff; }
+  #send:disabled, #voiceBtn:disabled { background: #9bbff7; cursor: not-allowed; color: #fff; }
+  .tip { text-align: center; color: #999; font-size: 12px; padding: 20px; }
+  #recMask { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; z-index: 999; }
+  #recMask .box { background: rgba(0,0,0,.75); color: #fff; padding: 26px 40px; border-radius: 12px; font-size: 16px; text-align: center; line-height: 2; }
+  #recMask .hint { display: block; font-size: 12px; color: #bbb; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <span>token:</span>
+    <input id="token" placeholder="粘贴登录后的 token（自动记住）">
+    <button class="btn-clear" onclick="clearChat()">清空对话</button>
+  </div>
+  <div id="chat">
+    <div class="tip">输入问题或按住麦克风说话，例如：张三本周有哪些任务 / 我上周完成了什么 / 查一下进行中的重要任务</div>
+  </div>
+  <div id="recMask">
+    <div class="box">正在聆听，请说话…<span class="hint">松开结束，识别后自动发送（最长60秒）</span></div>
+  </div>
+  <div class="bottom">
+    <button id="voiceBtn">按住 说话</button>
+    <textarea id="input" placeholder="输入问题，Enter 发送，Shift+Enter 换行"></textarea>
+    <button id="send" onclick="onSend()">发送</button>
+  </div>
+
+<!-- 本地 recorder-core（来自 task-miniprogram 的 npm 依赖） -->
+<script src="./task-miniprogram/node_modules/recorder-core/src/recorder-core.js"></script>
+<script src="./task-miniprogram/node_modules/recorder-core/src/engine/wav.js"></script>
+
+<script>
+  const API_CHAT = 'http://localhost:9090/ai/chat';
+  const API_ASR  = 'http://localhost:9090/ai/asr';
+
+  const tokenInput = document.getElementById('token');
+  const chatEl = document.getElementById('chat');
+  const inputEl = document.getElementById('input');
+  const sendBtn = document.getElementById('send');
+  const voiceBtn = document.getElementById('voiceBtn');
+  const recMask = document.getElementById('recMask');
+
+  let history = [];  // [{role, content}]
+  let sessionId = null;
+  let rec = null, recTimer = null;
+
+  tokenInput.value = localStorage.getItem('ai_test_token') || '';
+  tokenInput.addEventListener('change', () => localStorage.setItem('ai_test_token', tokenInput.value.trim()));
+
+  function addMsg(cls, text, meta) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + cls;
+    div.textContent = text;
+    if (meta) {
+      const m = document.createElement('div');
+      m.className = 'meta';
+      m.textContent = meta;
+      div.appendChild(m);
+    }
+    chatEl.appendChild(div);
+    chatEl.scrollTop = chatEl.scrollHeight;
+    return div;
+  }
+
+  // ==================== 文字对话 ====================
+  async function onSend() {
+    const token = tokenInput.value.trim();
+    const message = inputEl.value.trim();
+    if (!token) { alert('请先填入 token'); return; }
+    if (!message) return;
+    inputEl.value = '';
+    await askAI(message);
+  }
+
+  async function askAI(message) {
+    const token = tokenInput.value.trim();
+    addMsg('user', message);
+    history.push({ role: 'user', content: message });
+    sendBtn.disabled = true;
+    voiceBtn.disabled = true;
+
+    const loading = addMsg('ai', '思考中…');
+    const start = Date.now();
+    try {
+      const resp = await fetch(API_CHAT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'token': token },
+        body: JSON.stringify({ message, history, sessionId })
+      });
+      const res = await resp.json();
+      const secs = ((Date.now() - start) / 1000).toFixed(1);
+      loading.remove();
+      if (res.code === '200') {
+        const d = res.data;
+        const answer = typeof d === 'string' ? d : (d && d.answer) || '(空回复)';
+        if (d && d.sessionId) sessionId = d.sessionId;
+        addMsg('ai', answer, '耗时 ' + secs + 's');
+        history.push({ role: 'assistant', content: answer });
+      } else {
+        addMsg('ai err', '请求失败  code=' + res.code + '  ' + res.msg, '耗时 ' + secs + 's');
+      }
+    } catch (e) {
+      loading.remove();
+      addMsg('ai err', '网络错误：' + e.message + '（请确认后端已启动）');
+    }
+    sendBtn.disabled = false;
+    voiceBtn.disabled = false;
+  }
+
+  function clearChat() {
+    history = [];
+    sessionId = null;
+    chatEl.innerHTML = '<div class="tip">已开始新对话</div>';
+  }
+
+  // ==================== 语音：按住录音 -> /ai/asr -> 自动提问 ====================
+  voiceBtn.addEventListener('mousedown', e => { e.preventDefault(); voiceStart(); });
+  voiceBtn.addEventListener('mouseup', e => { e.preventDefault(); voiceEnd(); });
+  voiceBtn.addEventListener('touchstart', e => { e.preventDefault(); voiceStart(); });
+  voiceBtn.addEventListener('touchend', e => { e.preventDefault(); voiceEnd(); });
+  voiceBtn.addEventListener('touchcancel', () => voiceEnd());
+  recMask.addEventListener('mouseup', e => { e.preventDefault(); voiceEnd(); });
+  recMask.addEventListener('touchend', e => { e.preventDefault(); voiceEnd(); });
+
+  function voiceStart() {
+    if (sendBtn.disabled || rec) return;
+    const token = tokenInput.value.trim();
+    if (!token) { alert('请先填入 token'); return; }
+    if (typeof Recorder === 'undefined') {
+      alert('未找到 recorder-core，请确认 task-miniprogram 已执行 npm install');
+      return;
+    }
+    // GLM-ASR要求：wav/mp3，时长30秒内
+    const r = Recorder({ type: 'wav', sampleRate: 16000, bitRate: 16 });
+    r.open(() => {
+      rec = r;
+      r.start();
+      voiceBtn.classList.add('rec');
+      voiceBtn.textContent = '松开 发送';
+      recMask.style.display = 'flex';
+      recTimer = setTimeout(voiceEnd, 30000); // GLM-ASR限制30秒
+    }, (msg, isUserNotAllow) => {
+      alert(isUserNotAllow ? '请允许网页使用麦克风（浏览器地址栏权限）' : '录音不可用：' + msg);
+    });
+  }
+
+  function voiceEnd() {
+    if (!rec) return;
+    clearTimeout(recTimer);
+    const r = rec;
+    rec = null;
+    voiceBtn.classList.remove('rec');
+    voiceBtn.textContent = '按住 说话';
+    recMask.style.display = 'none';
+    r.stop(async (blob, duration) => {
+      r.close();
+      if (duration < 500) {
+        addMsg('ai err', '说话时间太短，请按住后再说话');
+        return;
+      }
+      const loading = addMsg('ai', '语音识别中…');
+      try {
+        const fd = new FormData();
+        fd.append('file', blob, 'voice.wav');
+        const resp = await fetch(API_ASR, { method: 'POST', headers: { 'token': tokenInput.value.trim() }, body: fd });
+        const res = await resp.json();
+        loading.remove();
+        if (res.code === '200' && res.data && res.data.trim()) {
+          addMsg('user', '🎙 ' + res.data.trim());
+          await askAI(res.data.trim());
+        } else {
+          addMsg('ai err', '识别失败  code=' + res.code + '  ' + (res.msg || '未识别到内容'));
+        }
+      } catch (e) {
+        loading.remove();
+        addMsg('ai err', '识别请求失败：' + e.message);
+      }
+    }, (msg) => {
+      r.close();
+      addMsg('ai err', '录音失败：' + msg);
+    });
+  }
+
+  inputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+services:
+  task_manage_mysql:
+    image: mysql:8.0.26
+    container_name: task_manage_mysql
+    ports:
+      - "3306:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: Qzb123456*
+    volumes:
+      - "/work/task_manage_docker/mysql/conf:/etc/mysql/conf.d"
+      - "/work/task_manage_docker/mysql/data:/var/lib/mysql"
+      - "/work/task_manage_docker/mysql/init:/docker-entrypoint-initdb.d"
+    networks:
+      - task_manage-net
+    restart: unless-stopped  # 核心：配置重启策略
+  task_manage_backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: task_manage_backend
+    ports:
+      - "9090:9090"
+    volumes:
+      - "/work/task_manage_docker/resource:/app/resource"  # 挂载文件上传目录
+      - "/work/task_manage_docker/logs/backend:/app/logs"  # 挂载后端日志（可选）
+    networks:
+      - task_manage-net
+    depends_on:
+      - task_manage_mysql
+    restart: unless-stopped  # 核心：配置重启策略
+  task_manage_frontend:
+    image: nginx
+    container_name: task_manage_frontend
+    ports:
+      - "8888:8888"
+      - "8889:8889"
+      - "443:443"   # HTTPS：语音输入要求安全上下文，H5走 https://服务器IP/
+    volumes:
+      - "/work/task_manage_docker/frontend/vue:/usr/share/nginx/html/vue"  # 挂载Vue静态文件
+      - "/work/task_manage_docker/frontend/h5:/usr/share/nginx/html/h5"    # 挂载H5静态文件
+      - "/work/task_manage_docker/resource:/app/resource"                  # 挂载文件目录
+      - "/work/task_manage_docker/nginx/nginx.conf:/etc/nginx/nginx.conf"  # 挂载nginx配置文件
+      - "/work/task_manage_docker/nginx/certs:/etc/nginx/certs"            # 挂载HTTPS证书(server.crt/server.key)
+      - "/work/task_manage_docker/nginx/logs:/var/log/nginx"               # 挂载Nginx日志
+    depends_on:
+      - task_manage_backend
+    networks:
+      - task_manage-net
+    restart: unless-stopped  # 核心：配置重启策略
+networks:
+  task_manage-net:
+    name: task_manage

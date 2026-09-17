@@ -1,0 +1,140 @@
+{	"easycom": {
+		"custom": {
+			"^u-(.*)": "@/uni_modules/uview-ui/components/u-$1/u-$1.vue",
+			"^aibao-(.*)": "@/components/aibao-$1/aibao-$1.vue"
+		}
+	},
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "主页",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登陆界面",
+				"navigationStyle": "custom"
+			}
+		},
+
+
+		{
+			"path": "pages/dept/dept",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom"
+			}
+		},
+
+		{
+			"path": "pages/declaration/declaration",
+			"style": {
+				"navigationBarTitleText": "任务申报"
+			}
+		},
+
+
+		{
+			"path": "pages/admin/admin",
+			"style": {
+				"navigationBarTitleText": "管理员主页",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/user-edit",
+			"style": {
+				"navigationBarTitleText": "修改用户信息",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/user/user",
+			"style": {
+				"navigationBarTitleText": "个人中心",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/task-detail/task-detail",
+			"style": {
+				"navigationBarTitleText": "任务详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/task-log/task-log",
+			"style": {
+				"navigationBarTitleText": "任务日志",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/meeting/meeting",
+			"style": {
+				"navigationBarTitleText": "会议管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/meeting-detail/meeting-detail",
+			"style": {
+				"navigationBarTitleText": "会议详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/works/works",
+			"style": {
+				"navigationBarTitleText": "重点工作",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/work-detail/work-detail",
+			"style": {
+				"navigationBarTitleText": "工作详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/task-add/task-add",
+			"style": {
+				"navigationBarTitleText": "新增任务",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/meeting-add/meeting-add",
+			"style": {
+				"navigationBarTitleText": "新增会议",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/works-add/works-add",
+			"style": {
+				"navigationBarTitleText": "新增工作",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ai/ai-chat",
+			"style": {
+				"navigationBarTitleText": "AI助手"
+			}
+		}
+	],
+
+	"globalStyle": {
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	}
+
+}

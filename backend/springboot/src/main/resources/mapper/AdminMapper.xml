@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.AdminMapper">
+    <sql id="Base_Column_List">
+        id,name,password,tid,email,role,rid,tenant,phone
+    </sql>
+
+
+    <select id="getAdminById" resultType="com.qzb.springboot.entity.Admin">
+        select admin.id,admin.name,password,email,rid,role.name as role,admin.tid,tenant.name as tenant,phone
+        from admin
+                 inner join tenant on tenant.id = admin.tid
+                 inner join role on role.id = admin.rid
+        where admin.id = #{id}
+    </select>
+
+
+
+</mapper>

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.SysdictMapper">
+
+<!--    <select id="getAllSysdicByTid"  resultType="com.qzb.springboot.entity.SysDict">-->
+<!--        select id,fid,tid,field,name-->
+<!--        from sys_dict-->
+<!--        where tid = #{tid}-->
+<!--    </select>-->
+
+<!--    <insert id="addSysdict" parameterType="com.qzb.springboot.entity.SysDict" useGeneratedKeys="true">-->
+<!--        insert into sys_dict-->
+<!--        <trim prefix="(" suffix=")" suffixOverrides=",">-->
+<!--            <if test="id != null">id,</if>-->
+<!--            <if test="fid != null">fid,</if>-->
+<!--            <if test="tid != null">tid,</if>-->
+<!--            <if test="field != null">field,</if>-->
+<!--            <if test="name != null">name,</if>-->
+<!--        </trim>-->
+<!--        <trim prefix="values (" suffix=")" suffixOverrides=",">-->
+<!--            <if test="id != null">#{id},</if>-->
+<!--            <if test="fid != null">#{fid},</if>-->
+<!--            <if test="tid != null">#{tid},</if>-->
+<!--            <if test="field != null">#{field},</if>-->
+<!--            <if test="name != null">#{name},</if>-->
+<!--        </trim>-->
+<!--    </insert>-->
+
+<!--    <update id="updateSysdict" parameterType="com.qzb.springboot.entity.SysDict">-->
+<!--        update sys_dict-->
+<!--        <set>-->
+<!--            <if test="fid != null">-->
+<!--                fid = #{fid},-->
+<!--            </if>-->
+<!--            <if test="field != null">-->
+<!--                field = #{field},-->
+<!--            </if>-->
+<!--            <if test="name != null">-->
+<!--                name = #{name},-->
+<!--            </if>-->
+<!--            <if test="value != null">-->
+<!--                value = #{value},-->
+<!--            </if>-->
+<!--        </set>-->
+<!--        where tid = #{tid} and id = #{id}-->
+<!--    </update>-->
+
+<!--    <delete id="deleteSysdict" >-->
+<!--        delete from sys_dict-->
+<!--        where  id = #{id} and tid = #{tid}-->
+<!--    </delete>-->
+
+
+
+<!--    2026-01-19-->
+<!--    更新接口，以上接口暂时不用-->
+
+    <!-- 结果映射 -->
+    <resultMap id="SysDictResultMap" type="com.qzb.springboot.entity.SysDict">
+        <id column="id" property="id"/>
+        <result column="fid" property="fid"/>
+        <result column="tid" property="tid"/>
+        <result column="field" property="field"/>
+        <result column="name" property="name"/>
+        <result column="value" property="value"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, fid, tid, field, name,value
+    </sql>
+
+    <!-- 根据租户ID查询所有字典数据 -->
+    <select id="getAllSysdicByTid" resultMap="SysDictResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_dict
+        WHERE tid = #{tid}
+        ORDER BY field, name
+    </select>
+
+    <!-- 根据ID查询字典 -->
+    <select id="getSysDictById" resultMap="SysDictResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_dict
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据父级ID查询所有下级字典 -->
+    <select id="getSysDictByFid" resultMap="SysDictResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_dict
+        WHERE fid = #{fid} AND fid != id
+    </select>
+
+    <!-- 查询字典类型列表（去重） -->
+    <select id="getDistinctFields" resultType="com.qzb.springboot.entity.SysDict">
+        SELECT DISTINCT field,name
+        FROM sys_dict
+        WHERE tid = #{tid}
+        ORDER BY field
+    </select>
+
+    <!-- 检查字典类型和名称是否已存在 -->
+    <select id="checkDuplicate" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_dict
+        WHERE tid = #{tid}
+        AND field = #{field}
+        AND name = #{name}
+        AND value = #{value}
+        <if test="id != null and id != ''">
+            AND id != #{id}
+        </if>
+    </select>
+
+    <!-- 检查同一父节点下字典名称是否已存在 -->
+    <!-- 2026-08-17 已废弃：被 checkDuplicateAmongSiblings 替代，保留SQL仅供回退 -->
+<!--    <select id="checkDuplicateByFid" resultType="int">-->
+<!--        SELECT COUNT(1)-->
+<!--        FROM sys_dict-->
+<!--        WHERE tid = #{tid}-->
+<!--        AND fid = #{fid}-->
+<!--        AND `value` = #{value}-->
+<!--        <if test="id != null and id != ''">-->
+<!--            AND id != #{id}-->
+<!--        </if>-->
+<!--    </select>-->
+
+    <!-- 同级（兄弟节点）唯一性校验：根节点之间互为同级；非根节点同级=fid相同 -->
+    <select id="checkDuplicateAmongSiblings" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_dict
+        WHERE tid = #{tid}
+        AND field = #{field}
+        AND `value` = #{value}
+        AND id != #{excludeId}
+        AND (
+              (#{isRoot} = 1 AND fid = id)
+           OR (#{isRoot} = 0 AND fid = #{fid} AND fid != id)
+            )
+    </select>
+
+    <!-- 新增字典 -->
+    <insert id="insertSysDict" parameterType="com.qzb.springboot.entity.SysDict">
+        INSERT INTO sys_dict (id, fid, tid, field, name,value)
+        VALUES (#{id}, #{fid}, #{tid}, #{field}, #{name},#{value})
+    </insert>
+
+    <!-- 更新字典 -->
+    <update id="updateSysDict" parameterType="com.qzb.springboot.entity.SysDict">
+        UPDATE sys_dict
+        SET
+        <if test="fid != null">
+            fid = #{fid},
+        </if>
+        <if test="field != null and field != ''">
+            field = #{field},
+        </if>
+        <if test="name != null and name != ''">
+            name = #{name},
+        </if>
+        <if test="value != null and value != ''">
+            value = #{value},
+        </if>
+        tid = #{tid}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除字典 -->
+    <delete id="deleteSysDictById">
+        DELETE FROM sys_dict WHERE id = #{id}
+    </delete>
+
+    <!-- 根据ID批量删除字典 -->
+    <delete id="deleteSysDictByIds">
+        DELETE FROM sys_dict WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getIdByValue" resultType="java.lang.String">
+        SELECT id
+        FROM sys_dict
+        WHERE tid = #{tid}
+        AND field = #{field}
+        AND value = #{value}
+        LIMIT 1
+    </select>
+
+
+    <!-- 根据ID查节点 -->
+    <select id="selectById" resultMap="SysDictResultMap">
+        SELECT id, fid, tid, field, name, value
+        FROM sys_dict
+        WHERE id = #{id}
+    </select>
+    <!-- 根据父ID查子节点（排除根节点自身） -->
+    <select id="selectChildrenByFid" resultMap="SysDictResultMap">
+        SELECT id, fid, tid, field, name, value
+        FROM sys_dict
+        WHERE fid = #{fid}
+          AND tid = #{tid}
+          AND id != fid
+    </select>
+
+    <select id="getMeetingStatus" resultMap="SysDictResultMap">
+        select * from sys_dict where field = 'meeting_status' and tid = #{tid}
+    </select>
+
+
+    <select id="selectByIdAndStatus" resultType="java.lang.String">
+        SELECT id FROM sys_dict
+        WHERE tid = #{tid}
+          AND field = 'meeting_status'
+          AND value = #{status}
+            LIMIT 1
+    </select>
+</mapper>

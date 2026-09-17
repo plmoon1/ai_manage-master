@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzb.springboot.mapper.PlanMapper">
+<!--    <sql id="Base_Column_List">-->
+<!--        id,name,detail,attribute,cycle,start_time,end_time,uid,tid,did,type,head,imp,progress,status,achievement,create_time,-->
+<!--        username,tenant,department-->
+<!--    </sql>    -->
+
+
+    <sql id="Base_Column_List">
+        plan.id,plan.name,detail,a.`value` as attributeValue,attribute,
+			start_time as startTime,end_time as endTime,
+            plan.uid,plan.tid,plan.did,c.`value` as typeValue,type,head,
+			d.`value` as impValue,imp,e.`value` as statusValue,plan.status,achievement,plan.create_time as createTime,
+            plan.update_time as updateTime,user.name as username,tenant.name as tenant,department.name as department,`isdelete`,isopen,isshow
+    </sql>
+
+    <insert id="addPlan" parameterType="com.qzb.springboot.entity.Plan" useGeneratedKeys="true">
+        insert into plan
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="name != null">name,</if>
+            <if test="detail != null">detail,</if>
+            <if test="attribute != null">attribute,</if>
+<!--            <if test="cycle != null">cycle,</if>-->
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="uid != null">uid,</if>
+            <if test="tid != null">tid,</if>
+            <if test="did != null">did,</if>
+            <if test="type != null">type,</if>
+            <if test="imp != null">imp,</if>
+<!--            <if test="progress != null">progress,</if>-->
+            <if test="status != null">status,</if>
+            <if test="achievement != null">achievement,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="head != null">head,</if>
+            <if test="isdelete != null">`isdelete`,</if>
+            <if test="isopen != null">`isopen`,</if>
+            <if test="isshow != null">`isshow`,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="name != null">#{name},</if>
+            <if test="detail != null">#{detail},</if>
+            <if test="attribute != null">#{attribute},</if>
+<!--            <if test="cycle != null">#{cycle},</if>-->
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="uid != null">#{uid},</if>
+            <if test="tid != null">#{tid},</if>
+            <if test="did != null">#{did},</if>
+            <if test="type != null">#{type},</if>
+            <if test="imp != null">#{imp},</if>
+<!--            <if test="progress != null">#{progress},</if>-->
+            <if test="status != null">#{status},</if>
+            <if test="achievement != null">#{achievement},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="head != null">#{head},</if>
+            <if test="isdelete != null">#{isdelete},</if>
+            <if test="isopen != null">#{isopen},</if>
+            <if test="isshow != null">#{isshow},</if>
+        </trim>
+    </insert>
+
+    <update id="updatePlan" parameterType="com.qzb.springboot.entity.Plan">
+        update plan
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="detail != null">detail = #{detail},</if>
+            <if test="attribute != null">`attribute` = #{attribute},</if>
+<!--            <if test="cycle != null">`cycle` = #{cycle},</if>-->
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="uid != null">uid = #{uid},</if>
+            <if test="tid != null">tid = #{tid},</if>
+            <if test="did != null">did = #{did},</if>
+            <if test="type != null">`type` = #{type},</if>
+            <if test="imp != null">imp = #{imp},</if>
+<!--            <if test="progress != null">progress = #{progress},</if>-->
+            <if test="status != null">status = #{status},</if>
+            <if test="achievement != null">achievement = #{achievement},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="head != null">head = #{head},</if>
+            <if test="isdelete != null">`isdelete` = #{isdelete},</if>
+            <if test="isopen != null">`isopen` = #{isopen},</if>
+            <if test="isshow != null">`isshow` = #{isshow},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+<!--    <select id="getAllPlanByPerson" resultType="com.qzb.springboot.entity.Plan">-->
+<!--        select-->
+<!--            plan.id,plan.name,detail,attribute,cycle,start_time as startTime,end_time as endTime,-->
+<!--            plan.uid,plan.tid,plan.did,type,head,imp,progress,plan.status,achievement,create_time as createTime,-->
+<!--            user.name as username,tenant.name as tenant,department.name as department,`delete`-->
+<!--        from plan-->
+<!--        join tenant on tenant.id = plan.tid-->
+<!--        join department on department.id = plan.did-->
+<!--        join user on user.id = plan.uid-->
+<!--        where plan.uid = #{uid} and `delete` = '0'-->
+<!--        order by plan.create_time desc-->
+<!--    </select>-->
+
+    <select id="getAllPlanByPerson" resultType="com.qzb.springboot.entity.Plan">
+        select
+            <include refid="Base_Column_List"></include>
+        from plan
+                 join tenant on tenant.id = plan.tid
+                 join department on department.id = plan.did
+                 join user on user.id = plan.uid
+                 join sys_dict a on a.id = plan.attribute
+<!--                 join sys_dict b on b.id = plan.cycle-->
+                 join sys_dict c on c.id = plan.type
+                 join sys_dict d on d.id = plan.imp
+                 join sys_dict e on e.id = plan.status
+        where plan.uid = #{uid} and `isdelete` = '0'
+        order by plan.create_time desc
+    </select>
+
+<!--    <select id="getAllPlanByDepartment" resultType="com.qzb.springboot.entity.Plan">-->
+<!--        select-->
+<!--            plan.id,plan.name,detail,attribute,cycle,start_time as startTime,end_time as endTime,-->
+<!--            plan.uid,plan.tid,plan.did,type,head,imp,progress,plan.status,achievement,create_time as createTime,-->
+<!--            user.name as username,tenant.name as tenant,department.name as department,`delete`-->
+<!--        from plan-->
+<!--                 join tenant on tenant.id = plan.tid-->
+<!--                 join department on department.id = plan.did-->
+<!--                 join user on user.id = plan.uid-->
+<!--        where plan.tid = #{tid} and plan.did = #{did} and `delete` = '0'-->
+<!--        order by plan.create_time desc-->
+<!--    </select>-->
+
+    <select id="getAllPlanByDepartment" resultType="com.qzb.springboot.entity.Plan">
+        select
+        <include refid="Base_Column_List"></include>
+        from plan
+        join tenant on tenant.id = plan.tid
+        join department on department.id = plan.did
+        join user on user.id = plan.uid
+        join sys_dict a on a.id = plan.attribute
+<!--        join sys_dict b on b.id = plan.cycle-->
+        join sys_dict c on c.id = plan.type
+        join sys_dict d on d.id = plan.imp
+        join sys_dict e on e.id = plan.status
+        where plan.tid = #{tid} and plan.did = #{did} and `isdelete` = '0'
+        <if test="isopen != null">and isopen = #{isopen}</if>
+        order by plan.create_time desc
+    </select>
+
+<!--    <select id="getAllPlanByTenant" resultType="com.qzb.springboot.entity.Plan">-->
+<!--        select-->
+<!--            plan.id,plan.name,detail,attribute,cycle,start_time as startTime,end_time as endTime,-->
+<!--            plan.uid,plan.tid,plan.did,type,head,imp,progress,plan.status,achievement,create_time as createTime,-->
+<!--            user.name as username,tenant.name as tenant,department.name as department,`delete`-->
+<!--        from plan-->
+<!--                 join tenant on tenant.id = plan.tid-->
+<!--                 join department on department.id = plan.did-->
+<!--                 join user on user.id = plan.uid-->
+<!--        where plan.tid = #{tid} and `delete` = '0'-->
+<!--        order by plan.create_time desc-->
+<!--    </select>-->
+
+    <select id="getAllPlanByTenant" resultType="com.qzb.springboot.entity.Plan">
+        select
+        <include refid="Base_Column_List"></include>
+        from plan
+        join tenant on tenant.id = plan.tid
+        join department on department.id = plan.did
+        join user on user.id = plan.uid
+        join sys_dict a on a.id = plan.attribute
+<!--        join sys_dict b on b.id = plan.cycle-->
+        join sys_dict c on c.id = plan.type
+        join sys_dict d on d.id = plan.imp
+        join sys_dict e on e.id = plan.status
+        where plan.tid = #{tid} and `isdelete` = '0'
+        order by plan.create_time desc
+    </select>
+
+    <select id="screenGetAllPlanByTenant" resultType="com.qzb.springboot.entity.Plan">
+        select
+        <include refid="Base_Column_List"></include>
+        from plan
+        join tenant on tenant.id = plan.tid
+        join department on department.id = plan.did
+        join user on user.id = plan.uid
+        join sys_dict a on a.id = plan.attribute
+        <!--        join sys_dict b on b.id = plan.cycle-->
+        join sys_dict c on c.id = plan.type
+        join sys_dict d on d.id = plan.imp
+        join sys_dict e on e.id = plan.status
+        where plan.tid = #{tid} and `isdelete` = '0' and isshow = '1'
+        order by plan.create_time desc
+    </select>
+
+
+    <select id="getPlanNumPrepareByPerson" resultType="java.lang.Integer">
+        select
+            count(*)
+        from plan
+        where tid = #{tid} and did = #{did} and uid = #{uid} and status = "未开始"
+    </select>
+
+    <select id="getPlanNumCompleteByPerson" resultType="java.lang.Integer">
+        select
+        count(*)
+        from plan
+        where tid = #{tid} and did = #{did} and uid = #{uid} and status = "已完成"
+    </select>
+
+    <select id="getPlanNumDoingByPerson" resultType="java.lang.Integer">
+        select
+        count(*)
+        from plan
+        where tid = #{tid} and did = #{did} and uid = #{uid} and status = "进行中"
+    </select>
+
+    <select id="getPlanNumCancelByPerson" resultType="java.lang.Integer">
+        select
+        count(*)
+        from plan
+        where tid = #{tid} and did = #{did} and uid = #{uid} and status = "已撤销"
+    </select>
+
+    <select id="getPlanNumPrepareByDepartment" resultType="java.lang.Integer">
+        select
+            count(*)
+        from plan
+        where tid = #{tid} and did = #{did}  and status = "未开始"
+    </select>
+
+    <select id="getPlanNumCompleteByDepartment" resultType="java.lang.Integer">
+        select
+            count(*)
+        from plan
+        where tid = #{tid} and did = #{did}  and status = "已完成"
+    </select>
+
+    <select id="getPlanNumDoingByDepartment" resultType="java.lang.Integer">
+        select
+            count(*)
+        from plan
+        where tid = #{tid} and did = #{did}  and status = "进行中"
+    </select>
+
+    <select id="getPlanNumCancelByDepartment" resultType="java.lang.Integer">
+        select
+            count(*)
+        from plan
+        where tid = #{tid} and did = #{did}  and status = "已撤销"
+    </select>
+
+<!--    <select id="getPlanDetail" resultType="com.qzb.springboot.entity.Plan">-->
+<!--        select-->
+<!--        plan.id,plan.name,detail,attribute,cycle,start_time as startTime,end_time as endTime,-->
+<!--        plan.uid,plan.tid,plan.did,type,head,imp,progress,plan.status,achievement,create_time as createTime,-->
+<!--        user.name as username,tenant.name as tenant,department.name as department,`delete`-->
+<!--        from plan-->
+<!--        join tenant on tenant.id = plan.tid-->
+<!--        join department on department.id = plan.did-->
+<!--        join user on user.id = plan.uid-->
+<!--        <where>-->
+<!--            <if test="delete == null">-->
+<!--                and plan.delete = '0'-->
+<!--            </if>-->
+<!--            <if test="id != null"> and plan.id= #{id}</if>-->
+<!--            <if test="uid != null"> and plan.uid= #{uid}</if>-->
+<!--            <if test="did != null"> and plan.id= #{did}</if>-->
+<!--            <if test="status != null"> and plan.status= #{status}</if>-->
+<!--        </where>-->
+<!--        order by plan.create_time desc-->
+<!--    </select>-->
+    <select id="getPlanDetail" resultType="com.qzb.springboot.entity.Plan">
+        select
+        <include refid="Base_Column_List"></include>
+        from plan
+        join tenant on tenant.id = plan.tid
+        join department on department.id = plan.did
+        join user on user.id = plan.uid
+        join sys_dict a on a.id = plan.attribute
+<!--        join sys_dict b on b.id = plan.cycle-->
+        join sys_dict c on c.id = plan.type
+        join sys_dict d on d.id = plan.imp
+        join sys_dict e on e.id = plan.status
+        <where>
+            <if test="isdelete == null">
+                and plan.isdelete = '0'
+            </if>
+            <if test="id != null"> and plan.id= #{id}</if>
+            <if test="uid != null"> and plan.uid= #{uid}</if>
+            <if test="did != null"> and plan.id= #{did}</if>
+            <if test="status != null"> and plan.status= #{status}</if>
+        </where>
+        order by plan.create_time desc
+    </select>
+
+    <insert id="addPlanLog" parameterType="com.qzb.springboot.entity.PlanLog" useGeneratedKeys="true">
+        insert into plan_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="content != null">content,</if>
+            <if test="pid != null">pid,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="content != null">#{content},</if>
+            <if test="pid != null">#{pid},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updatePlanLog" parameterType="com.qzb.springboot.entity.PlanLog">
+        update plan_log
+        <set>
+            <if test="content != null">
+                content = #{content},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deletePlanLog">
+        delete from plan_log
+        where  id = #{id}
+    </delete>
+
+    <select id="getPlanLogByPid" >
+        select id,content,pid,create_time as createTime,plan
+        from plan_log
+        where pid = #{pid}
+        order by plan_log.create_time
+    </select>
+
+<!--    <select id="searchPlanByCondition" parameterType="com.qzb.springboot.entity.Plan" resultType="com.qzb.springboot.entity.Plan">-->
+<!--        select-->
+<!--            plan.id,plan.name,detail,attribute,cycle,start_time as startTime,end_time as endTime,-->
+<!--            plan.uid,plan.tid,plan.did,type,head,imp,progress,plan.status,achievement,create_time as createTime,-->
+<!--            user.name as username,tenant.name as tenant,department.name as department,`delete`-->
+<!--        from plan-->
+<!--                 join tenant on tenant.id = plan.tid-->
+<!--                 join department on department.id = plan.did-->
+<!--                 join user on user.id = plan.uid-->
+<!--        <where>-->
+<!--            <if test="id != null"> and plan.id= #{id}</if>-->
+<!--            <if test="tid != null"> and plan.tid= #{tid}</if>-->
+<!--            <if test="uid != null"> and plan.uid = #{uid}</if>-->
+<!--            <if test="did != null"> and plan.did = #{did}</if>-->
+<!--            <if test="name != null"> and plan.name like concat('%', #{name}, '%')</if>-->
+<!--            <if test="status != null"> and plan.status = #{status}</if>-->
+<!--            <if test="attribute != null"> and plan.attribute = #{attribute}</if>-->
+<!--            <if test="cycle != null"> and plan.cycle = #{cycle}</if>-->
+<!--            <if test="type != null"> and plan.type = #{type}</if>-->
+<!--            <if test="head != null"> and plan.head = #{head}</if>-->
+<!--            <if test="imp != null"> and plan.imp = #{imp}</if>-->
+<!--            <if test="username != null"> and plan.username like concat('%', #{username}, '%')</if>-->
+<!--        </where>-->
+<!--        order by plan.create_time desc-->
+<!--    </select>-->
+
+    <select id="searchPlanByCondition" parameterType="com.qzb.springboot.entity.Plan" resultType="com.qzb.springboot.entity.Plan">
+        select
+        <include refid="Base_Column_List"></include>
+        from plan
+        join tenant on tenant.id = plan.tid
+        join department on department.id = plan.did
+        join user on user.id = plan.uid
+        join sys_dict a on a.id = plan.attribute
+<!--        join sys_dict b on b.id = plan.cycle-->
+        join sys_dict c on c.id = plan.type
+        join sys_dict d on d.id = plan.imp
+        join sys_dict e on e.id = plan.status
+        <where>
+            <if test="id != null"> and plan.id= #{id}</if>
+            <if test="tid != null"> and plan.tid= #{tid}</if>
+            <if test="uid != null"> and plan.uid = #{uid}</if>
+            <if test="did != null"> and plan.did = #{did}</if>
+            <if test="name != null"> and plan.name like concat('%', #{name}, '%')</if>
+            <if test="status != null"> and plan.status = #{status}</if>
+            <!-- 新增：仅当status为null时，过滤未撤销数据 -->
+            <if test="status == null"> and plan.status != '未撤销'</if>
+            <if test="attribute != null"> and plan.attribute = #{attribute}</if>
+<!--            <if test="cycle != null"> and plan.cycle = #{cycle}</if>-->
+            <if test="type != null"> and plan.type = #{type}</if>
+            <if test="head != null"> and plan.head = #{head}</if>
+            <if test="imp != null"> and plan.imp = #{imp}</if>
+            <if test="isopen != null"> and plan.isopen = #{isopen}</if>
+            <if test="isshow != null"> and plan.isshow = #{isshow}</if>
+            <if test="username != null"> and plan.username like concat('%', #{username}, '%')</if>
+            <!-- ===================== 时间条件（纯String字符串比较） ===================== -->
+            <!-- 传入开始时间不为空：计划结束时间 >= 传入开始时间 -->
+            <if test="startTime != null and startTime != ''">
+                and plan.end_time >= #{startTime}
+            </if>
+            <!-- 传入结束时间不为空：计划开始时间 <= 传入结束时间 -->
+            <if test="endTime != null and endTime != ''">
+                and plan.start_time &lt;= #{endTime}
+            </if>
+            and `isdelete` = '0'
+        </where>
+        order by plan.create_time desc
+    </select>
+
+    <insert id="addPlanFile" parameterType="com.qzb.springboot.entity.PlanFiles" useGeneratedKeys="true">
+        insert into plan_files
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="name != null">name,</if>
+            <if test="type != null">type,</if>
+            <if test="pid != null">pid,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="name != null">#{name},</if>
+            <if test="type != null">#{type},</if>
+            <if test="pid != null">#{pid},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <select id="getPlanFiles" resultType="com.qzb.springboot.entity.PlanFiles">
+        select id,name,type,pid, create_time as createTime
+        from plan_files
+        where pid = #{pid}
+        order by plan_files.create_time
+    </select>
+
+    <delete id="deletePlanFiles">
+        delete from plan_files
+        where  id = #{id}
+    </delete>
+
+
+    <select id="getPlanDidByFileName" resultType="java.lang.String">
+        select did
+        from plan_files
+                 join plan on plan.id = plan_files.pid
+        where plan_files.name = #{file}
+    </select>
+
+    <select id="getPlanDidByPfid" resultType="java.lang.String">
+        select pid
+        from plan_files
+        where id = #{pfid}
+    </select>
+
+    <select id="getPlanDidById" resultType="java.lang.String">
+        select did
+        from plan
+        where id = #{pid}
+    </select>
+
+<!--    <select id="screenGetAllPlanByTenantAndTime" resultType="com.qzb.springboot.entity.Plan">-->
+<!--        select-->
+<!--        <include refid="Base_Column_List"></include>-->
+<!--        from plan-->
+<!--        join tenant on tenant.id = plan.tid-->
+<!--        join department on department.id = plan.did-->
+<!--        join user on user.id = plan.uid-->
+<!--        join sys_dict a on a.id = plan.attribute-->
+<!--        &lt;!&ndash;        join sys_dict b on b.id = plan.cycle&ndash;&gt;-->
+<!--        join sys_dict c on c.id = plan.type-->
+<!--        join sys_dict d on d.id = plan.imp-->
+<!--        join sys_dict e on e.id = plan.status-->
+<!--        where plan.tid = #{tid} and `isdelete` = '0' and isshow = '1'-->
+<!--        &lt;!&ndash; 新增条件：end_time与当前时间之差 <= time &ndash;&gt;-->
+<!--&lt;!&ndash;        and DATEDIFF(STR_TO_DATE(plan.end_time, '%Y-%m-%d'), CURDATE()) <= CAST(#{time} AS SIGNED)&ndash;&gt;-->
+<!--        order by plan.create_time desc-->
+<!--    </select>-->
+    <select id="screenGetAllPlanByTenantAndTime" resultType="com.qzb.springboot.entity.Plan">
+        select
+        <include refid="Base_Column_List"></include>
+        from plan
+        join tenant on tenant.id = plan.tid
+        join department on department.id = plan.did
+        join user on user.id = plan.uid
+        join sys_dict a on a.id = plan.attribute
+        join sys_dict c on c.id = plan.type
+        join sys_dict d on d.id = plan.imp
+        join sys_dict e on e.id = plan.status
+        where plan.tid = #{tid}
+        and `isdelete` = '0'
+        and isshow = '1'
+        and e.value not in  ('已完成','已撤销')
+        <!-- 核心修正：将 <= 替换为 &lt;=（XML实体转义） -->
+        and DATEDIFF(STR_TO_DATE(plan.end_time, '%Y-%m-%d'), CURDATE()) &lt;= CAST(#{time} AS SIGNED)
+        order by plan.create_time desc
+    </select>
+
+    <select id="selectPlanByIdsAndTid" resultType="com.qzb.springboot.entity.Plan">
+        SELECT
+        plan.id,plan.name,detail,a.`value` as attributeValue,attribute,
+        start_time as startTime,end_time as endTime,
+        plan.uid,plan.tid,plan.did,c.`value` as typeValue,type,head,
+        d.`value` as impValue,imp,e.`value` as statusValue,plan.status,achievement,plan.create_time as createTime,
+        plan.update_time as updateTime,user.name as username,tenant.name as tenant,department.name as department,`isdelete`,
+        CASE WHEN plan.isopen = '1' THEN '公开' ELSE '私密' END as isopen,
+        CASE WHEN plan.isshow = '1' THEN '是' ELSE '否' END as isshow
+        from plan
+        join tenant on tenant.id = plan.tid
+        join department on department.id = plan.did
+        join user on user.id = plan.uid
+        join sys_dict a on a.id = plan.attribute
+        join sys_dict c on c.id = plan.type
+        join sys_dict d on d.id = plan.imp
+        join sys_dict e on e.id = plan.status
+        WHERE plan.id IN
+        <foreach collection='ids' item='id' open='(' separator=',' close=')'>
+            #{id}
+        </foreach>
+        AND plan.tid = #{tid}
+        AND plan.isdelete = '0'
+    </select>
+
+    <!-- 各负责人的任务数聚合：AI按负责人筛选时列出真实有任务的负责人 -->
+    <select id="countByHead" resultType="java.util.HashMap">
+        select head, count(*) as cnt
+        from plan
+        where tid = #{tid} and isdelete = '0'
+        group by head
+        order by cnt desc
+        limit #{limit}
+    </select>
+</mapper>
